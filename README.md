@@ -378,7 +378,11 @@ const projects = [
   {id:77, name:"Reddit/Twitter Sentiment", mlCategories:["Supervised"], techniques:["NLP","Sentiment Analysis"], domain:"Alternative Data", complexity:"Intermediate", tier:"Research Backlog"},
   {id:78, name:"Job Postings Sector Health", mlCategories:["Supervised"], techniques:["Web Scraping","Feature Engineering"], domain:"Alternative Data", complexity:"Intermediate", tier:"Research Backlog"},
   {id:79, name:"Satellite Imagery Analysis", mlCategories:["Deep Learning","Supervised"], techniques:["Computer Vision","CNN"], domain:"Alternative Data", complexity:"Advanced", tier:"Research Backlog"},
-  {id:80, name:"Web Scraping Pipeline", mlCategories:["Engineering"], techniques:["Web Scraping","ETL"], domain:"Alternative Data", complexity:"Intermediate", tier:"Research Backlog"}
+  {id:80, name:"Web Scraping Pipeline", mlCategories:["Engineering"], techniques:["Web Scraping","ETL"], domain:"Alternative Data", complexity:"Intermediate", tier:"Research Backlog"},
+
+  // ============ NEW ADDITIONS — MAY 2026 ============
+  {id:81, name:"ML Return Prediction", mlCategories:["Supervised","Statistical Methods"], techniques:["XGBoost","Purged CV","SHAP","Cross-Sectional"], domain:"Factor Models", complexity:"Research-Grade", tier:"GitHub Pin"},
+  {id:82, name:"Purged Walk-Forward CV", mlCategories:["Statistical Methods","Engineering"], techniques:["Purged CV","Embargo","Cross-Validation"], domain:"Infrastructure", complexity:"Advanced", tier:"Technical Deep Dive"}
 ];
 
 // ============ COLORS & SIZES ============
