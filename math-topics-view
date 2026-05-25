@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Prometheus — Quant Math Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0e0f11;
+    --surface:   #16181c;
+    --surface2:  #1e2026;
+    --border:    rgba(255,255,255,0.07);
+    --border2:   rgba(255,255,255,0.12);
+    --text:      #e8e6df;
+    --muted:     #8a8880;
+    --faint:     #4a4845;
+
+    --tier-a-bg: #1e1a38; --tier-a-text: #c8c3f8; --tier-a-dot: #7f77dd;
+    --tier-b-bg: #0d2820; --tier-b-text: #7dd9bc; --tier-b-dot: #1d9e75;
+    --tier-c-bg: #2a1108; --tier-c-text: #f0a07a; --tier-c-dot: #d85a30;
+    --tier-d-bg: #241600; --tier-d-text: #f8c46a; --tier-d-dot: #ef9f27;
+    --tier-e-bg: #041d38; --tier-e-text: #85c8f5; --tier-e-dot: #378add;
+    --tier-f-bg: #1a0d28; --tier-f-text: #d4a0f8; --tier-f-dot: #9f60d4;
+    --tier-h-bg: #0e2204; --tier-h-text: #a8d870; --tier-h-dot: #639922;
+    --tier-i-bg: #280d1c; --tier-i-text: #f0a0c8; --tier-i-dot: #d4537e;
+    --tier-j-bg: #1a1a18; --tier-j-text: #c8c6be; --tier-j-dot: #888780;
+    --tier-m-bg: #141412; --tier-m-text: #909088; --tier-m-dot: #666460;
+
+    --accent: #5b8fff;
+    --radius: 8px;
+    --font-mono: 'DM Mono', monospace;
+    --font-sans: 'DM Sans', sans-serif;
+  }
+
+  html { font-size: 15px; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.6; min-height: 100vh; }
+
+  /* ── Layout ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  /* ── Header ── */
+  .header { margin-bottom: 2.5rem; }
+  .header-eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 0.6rem;
+  }
+  .header h1 { font-size: 1.7rem; font-weight: 500; color: var(--text); letter-spacing: -0.02em; line-height: 1.2; }
+  .header p { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; max-width: 520px; line-height: 1.6; }
+
+  /* ── Legend ── */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--muted); font-family: var(--font-mono);
+  }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Filters ── */
+  .filter-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.8rem; }
+  .filter-btn {
+    padding: 5px 13px; border-radius: 20px; cursor: pointer; transition: all 0.15s ease;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em;
+    background: var(--surface); color: var(--muted);
+    border: 1px solid var(--border2);
+  }
+  .filter-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Section ── */
+  .section { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; cursor: pointer; user-select: none;
+    background: var(--surface); transition: background 0.12s;
+  }
+  .section-header:hover { background: var(--surface2); }
+  .section-title { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: var(--text); }
+  .section-icon { font-size: 14px; }
+  .section-count {
+    font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+    background: var(--surface2); border: 1px solid var(--border2);
+    padding: 1px 7px; border-radius: 10px;
+  }
+  .chevron { color: var(--faint); font-size: 11px; transition: transform 0.2s; }
+  .collapsed .chevron { transform: rotate(-90deg); }
+  .section-body { border-top: 1px solid var(--border); }
+
+  /* ── Row ── */
+  .row {
+    display: grid; grid-template-columns: 210px 1fr;
+    padding: 9px 16px; gap: 12px; align-items: start;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: rgba(255,255,255,0.02); }
+  .math-topic { font-size: 12.5px; color: var(--muted); padding-top: 3px; font-family: var(--font-mono); line-height: 1.4; }
+  .projects { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 400;
+    font-family: var(--font-mono); white-space: nowrap; letter-spacing: 0.01em;
+    border: 1px solid transparent;
+  }
+  .tag-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  .tag.tier-a { background: var(--tier-a-bg); color: var(--tier-a-text); }
+  .tag.tier-a .tag-dot { background: var(--tier-a-dot); }
+  .tag.tier-b { background: var(--tier-b-bg); color: var(--tier-b-text); }
+  .tag.tier-b .tag-dot { background: var(--tier-b-dot); }
+  .tag.tier-c { background: var(--tier-c-bg); color: var(--tier-c-text); }
+  .tag.tier-c .tag-dot { background: var(--tier-c-dot); }
+  .tag.tier-d { background: var(--tier-d-bg); color: var(--tier-d-text); }
+  .tag.tier-d .tag-dot { background: var(--tier-d-dot); }
+  .tag.tier-e { background: var(--tier-e-bg); color: var(--tier-e-text); }
+  .tag.tier-e .tag-dot { background: var(--tier-e-dot); }
+  .tag.tier-f { background: var(--tier-f-bg); color: var(--tier-f-text); }
+  .tag.tier-f .tag-dot { background: var(--tier-f-dot); }
+  .tag.tier-h { background: var(--tier-h-bg); color: var(--tier-h-text); }
+  .tag.tier-h .tag-dot { background: var(--tier-h-dot); }
+  .tag.tier-i { background: var(--tier-i-bg); color: var(--tier-i-text); }
+  .tag.tier-i .tag-dot { background: var(--tier-i-dot); }
+  .tag.tier-j { background: var(--tier-j-bg); color: var(--tier-j-text); }
+  .tag.tier-j .tag-dot { background: var(--tier-j-dot); }
+  .tag.tier-m { background: var(--tier-m-bg); color: var(--tier-m-text); border-color: var(--border2); }
+  .tag.tier-m .tag-dot { background: var(--tier-m-dot); }
+
+  /* ── Footer ── */
+  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 11px; font-family: var(--font-mono); color: var(--faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+
+  @media (max-width: 600px) {
+    .row { grid-template-columns: 1fr; }
+    .math-topic { padding-top: 0; }
+    .header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-eyebrow">Project Prometheus — Curriculum Reference</div>
+    <h1>Quant Math → Portfolio Projects</h1>
+    <p>Every math topic from the quant finance canon mapped to the specific Prometheus projects where it appears. Filter by subject area.</p>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <div class="filter-row" id="filters"></div>
+  <div id="content"></div>
+
+  <div class="footer">
+    <span>Project Prometheus · github.com/clarkkentec/Prometheus</span>
+    <span>Updated May 2026</span>
+  </div>
+
+</div>
+
+<script>
+const TIERS = [
+  { id:'a', label:'A: CV Project',        dot:'#7f77dd' },
+  { id:'b', label:'B: GitHub Pin',         dot:'#1d9e75' },
+  { id:'c', label:'C: Deep Dive',          dot:'#d85a30' },
+  { id:'d', label:'D: Tools',              dot:'#ef9f27' },
+  { id:'e', label:'E: Case Study',         dot:'#378add' },
+  { id:'f', label:'F: L/S Equity',         dot:'#9f60d4' },
+  { id:'h', label:'H: Foundational',       dot:'#639922' },
+  { id:'i', label:'I: Strategy Module',    dot:'#d4537e' },
+  { id:'j', label:'J: Portfolio/Risk',     dot:'#888780' },
+  { id:'m', label:'M: Experiment',         dot:'#666460' },
+];
+
+const FILTERS = [
+  { id:'all',   label:'All topics' },
+  { id:'prob',  label:'Prob & Stats' },
+  { id:'linalg',label:'Linear Algebra' },
+  { id:'calc',  label:'Calculus' },
+  { id:'stoch', label:'Stochastic Calc' },
+  { id:'ts',    label:'Time Series' },
+  { id:'num',   label:'Numerical Methods' },
+  { id:'ml',    label:'Machine Learning' },
+];
+
+const DATA = [
+  {
+    id:'prob', label:'Probability & Statistics', icon:'📐',
+    rows:[
+      { topic:'Hypothesis testing', projects:[
+        {tier:'m',label:'Hypothesis testing examples (M)'},
+        {tier:'m',label:'Return distribution analysis (M)'},
+        {tier:'m',label:'Bootstrap resampling (M)'},
+        {tier:'m',label:'Max likelihood estimation (M)'},
+      ]},
+      { topic:'Distributions & expected value', projects:[
+        {tier:'m',label:'Return distribution analysis (M)'},
+        {tier:'m',label:'Black-Scholes pricing (M)'},
+        {tier:'m',label:'Simple Monte Carlo option pricer (M)'},
+        {tier:'b',label:'GARCH vs LSTM forecasting (B)'},
+      ]},
+      { topic:'Log-normal distribution', projects:[
+        {tier:'m',label:'Return distribution analysis (M)'},
+        {tier:'m',label:'Black-Scholes pricing (M)'},
+        {tier:'c',label:'Options Greeks calculator (C)'},
+      ]},
+      { topic:'Bayes theorem', projects:[
+        {tier:'m',label:'Logistic regression (M)'},
+        {tier:'m',label:'Max likelihood estimation (M)'},
+        {tier:'c',label:'Random Forest feature importance (C)'},
+      ]},
+    ]
+  },
+  {
+    id:'linalg', label:'Linear Algebra', icon:'🔢',
+    rows:[
+      { topic:'Matrices & transformations', projects:[
+        {tier:'m',label:'Correlation matrix visualisation (M)'},
+        {tier:'m',label:'PCA for dimensionality reduction (M)'},
+        {tier:'d',label:'Factor-based risk model library (D)'},
+        {tier:'b',label:'Dynamic factor attribution engine (B)'},
+      ]},
+      { topic:'Eigenvalues & PCA', projects:[
+        {tier:'m',label:'PCA for dimensionality reduction (M)'},
+        {tier:'m',label:'Correlation matrix visualisation (M)'},
+        {tier:'m',label:'Covariance estimation methods (M)'},
+        {tier:'d',label:'Factor-based risk model library (D)'},
+      ]},
+      { topic:'Eigendecomposition of cov matrix', projects:[
+        {tier:'m',label:'Covariance estimation methods (M)'},
+        {tier:'m',label:'Correlation matrix visualisation (M)'},
+        {tier:'d',label:'Factor-based risk model library (D)'},
+        {tier:'b',label:'Dynamic factor attribution engine (B)'},
+      ]},
+      { topic:'Portfolio optimisation', projects:[
+        {tier:'m',label:'Basic portfolio optimisation (M)'},
+        {tier:'m',label:'Basic risk parity (M)'},
+        {tier:'j',label:'Portfolio construction/optimisation (J)'},
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'a',label:'Comprehensive backtesting framework (A)'},
+      ]},
+    ]
+  },
+  {
+    id:'calc', label:'Calculus', icon:'∫',
+    rows:[
+      { topic:'Derivatives & gradients', projects:[
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'m',label:'Simple linear regression (M)'},
+        {tier:'c',label:'XGBoost return prediction (C)'},
+      ]},
+      { topic:'Multivariable & chain rule', projects:[
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'c',label:'XGBoost return prediction (C)'},
+        {tier:'m',label:'Logistic regression (M)'},
+      ]},
+      { topic:'Constrained optimisation (Lagrange)', projects:[
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'j',label:'Portfolio construction/optimisation (J)'},
+        {tier:'m',label:'Basic portfolio optimisation (M)'},
+        {tier:'j',label:'Position sizing & capital allocation (J)'},
+      ]},
+      { topic:'Minimum variance portfolio', projects:[
+        {tier:'m',label:'Basic portfolio optimisation (M)'},
+        {tier:'j',label:'Portfolio construction/optimisation (J)'},
+        {tier:'m',label:'Basic risk parity (M)'},
+        {tier:'a',label:'Comprehensive backtesting framework (A)'},
+      ]},
+    ]
+  },
+  {
+    id:'stoch', label:'Stochastic Calculus', icon:'📈',
+    rows:[
+      { topic:'Brownian motion', projects:[
+        {tier:'h',label:'Monte Carlo simulator (H)'},
+        {tier:'m',label:'Simple Monte Carlo option pricer (M)'},
+        {tier:'h',label:'Numerical PDE & finite differences (H)'},
+      ]},
+      { topic:"Itô's lemma", projects:[
+        {tier:'m',label:'Black-Scholes pricing (M)'},
+        {tier:'c',label:'Options Greeks calculator (C)'},
+        {tier:'i',label:'Options & volatility (I)'},
+      ]},
+      { topic:'Black-Scholes & options pricing', projects:[
+        {tier:'m',label:'Black-Scholes pricing (M)'},
+        {tier:'m',label:'Simple Monte Carlo option pricer (M)'},
+        {tier:'c',label:'Options Greeks calculator (C)'},
+        {tier:'i',label:'Options & volatility (I)'},
+        {tier:'c',label:'Earnings implied vol crush (C)'},
+      ]},
+      { topic:'SDEs & Ornstein-Uhlenbeck', projects:[
+        {tier:'i',label:'Mean reversion & pairs trading (I)'},
+        {tier:'c',label:'Kalman filter pairs trading (C)'},
+        {tier:'c',label:'Cross-sectional mean reversion (C)'},
+        {tier:'a',label:'Stat arb & mean-reversion suite (A)'},
+        {tier:'e',label:'Pair trading simulator (E)'},
+      ]},
+    ]
+  },
+  {
+    id:'ts', label:'Time Series & Econometrics', icon:'📊',
+    rows:[
+      { topic:'AR(1) process', projects:[
+        {tier:'m',label:'Time series decomposition (M)'},
+        {tier:'m',label:'ACF/PACF analysis (M)'},
+        {tier:'b',label:'GARCH vs LSTM forecasting (B)'},
+        {tier:'c',label:'Regime detection framework (C)'},
+      ]},
+      { topic:'ARIMA & autocorrelation', projects:[
+        {tier:'m',label:'ACF/PACF analysis (M)'},
+        {tier:'m',label:'Time series decomposition (M)'},
+        {tier:'b',label:'GARCH vs LSTM forecasting (B)'},
+      ]},
+      { topic:'Cointegration & pairs trading', projects:[
+        {tier:'e',label:'Pair trading simulator (E)'},
+        {tier:'f',label:'Pair trading L/S strategy (F)'},
+        {tier:'c',label:'Kalman filter pairs trading (C)'},
+        {tier:'i',label:'Statistical arbitrage (I)'},
+        {tier:'i',label:'Mean reversion & pairs trading (I)'},
+        {tier:'a',label:'Stat arb & mean-reversion suite (A)'},
+      ]},
+      { topic:'GARCH & volatility modelling', projects:[
+        {tier:'b',label:'GARCH vs LSTM forecasting (B)'},
+        {tier:'e',label:'Crypto volatility regime analysis (E)'},
+        {tier:'c',label:'Earnings implied vol crush (C)'},
+        {tier:'b',label:'Real-time VaR & stress testing (B)'},
+      ]},
+    ]
+  },
+  {
+    id:'num', label:'Numerical Methods & Optimisation', icon:'⚙️',
+    rows:[
+      { topic:'Gradient descent', projects:[
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'c',label:'XGBoost return prediction (C)'},
+        {tier:'c',label:'Random Forest feature importance (C)'},
+      ]},
+      { topic:'Monte Carlo', projects:[
+        {tier:'h',label:'Monte Carlo simulator (H)'},
+        {tier:'m',label:'Simple Monte Carlo option pricer (M)'},
+        {tier:'a',label:'Comprehensive backtesting framework (A)'},
+        {tier:'b',label:'Real-time VaR & stress testing (B)'},
+      ]},
+      { topic:'Convex optimisation', projects:[
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'j',label:'Portfolio construction/optimisation (J)'},
+        {tier:'j',label:'Position sizing & capital allocation (J)'},
+      ]},
+      { topic:'Finite difference methods', projects:[
+        {tier:'h',label:'Numerical PDE & finite differences (H)'},
+        {tier:'i',label:'Options & volatility (I)'},
+      ]},
+    ]
+  },
+  {
+    id:'ml', label:'Machine Learning', icon:'🤖',
+    rows:[
+      { topic:'Regularisation', projects:[
+        {tier:'m',label:'Cross-validation techniques (M)'},
+        {tier:'m',label:'Grid search hyperparameters (M)'},
+        {tier:'c',label:'XGBoost return prediction (C)'},
+        {tier:'c',label:'Random Forest feature importance (C)'},
+        {tier:'b',label:'ML cross-sectional return pipeline (B)'},
+      ]},
+      { topic:'Overfitting prevention', projects:[
+        {tier:'c',label:'Walk-forward CV framework (C)'},
+        {tier:'m',label:'Cross-validation techniques (M)'},
+        {tier:'c',label:'XGBoost return prediction (C)'},
+        {tier:'b',label:'ML cross-sectional return pipeline (B)'},
+        {tier:'b',label:'GARCH vs LSTM forecasting (B)'},
+      ]},
+      { topic:'L-BFGS optimisation', projects:[
+        {tier:'h',label:'Optimisation & root finding (H)'},
+        {tier:'c',label:'XGBoost return prediction (C)'},
+      ]},
+    ]
+  }
+];
+
+function buildLegend() {
+  const el = document.getElementById('legend');
+  el.innerHTML = TIERS.map(t => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${t.dot}"></div>
+      ${t.label}
+    </div>`).join('');
+}
+
+function buildFilters() {
+  const el = document.getElementById('filters');
+  el.innerHTML = FILTERS.map(f => `
+    <button class="filter-btn${f.id==='all'?' active':''}" data-filter="${f.id}">${f.label}</button>
+  `).join('');
+  el.addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    el.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render(btn.dataset.filter);
+  });
+}
+
+function tag(p) {
+  return `<span class="tag tier-${p.tier}"><span class="tag-dot"></span>${p.label}</span>`;
+}
+
+function render(filter) {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  DATA.forEach(section => {
+    if (filter !== 'all' && filter !== section.id) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'section';
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `
+      <div class="section-title">
+        <span class="section-icon">${section.icon}</span>
+        <span>${section.label}</span>
+        <span class="section-count">${section.rows.length} topics</span>
+      </div>
+      <span class="chevron">▼</span>`;
+    header.addEventListener('click', () => {
+      header.classList.toggle('collapsed');
+      body.style.display = header.classList.contains('collapsed') ? 'none' : 'block';
+    });
+
+    const body = document.createElement('div');
+    body.className = 'section-body';
+    section.rows.forEach(row => {
+      const r = document.createElement('div');
+      r.className = 'row';
+      r.innerHTML = `
+        <div class="math-topic">${row.topic}</div>
+        <div class="projects">${row.projects.map(tag).join('')}</div>`;
+      body.appendChild(r);
+    });
+
+    wrap.appendChild(header);
+    wrap.appendChild(body);
+    content.appendChild(wrap);
+  });
+}
+
+buildLegend();
+buildFilters();
+render('all');
+</script>
+</body>
+</html>
